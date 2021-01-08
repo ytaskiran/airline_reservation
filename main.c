@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 int mainMenu();
-int passwordCheck();
+void passwordCheck();
 void adminpanel();
 void addflight();
 
@@ -23,26 +23,8 @@ int main() {
     choice = mainMenu();
 
     if (choice == 1){
-        int count = 0;
-        do { 
-            check = passwordCheck();
-            if (check == 0){
-				printf("Password is correct\n");
-				adminpanel();
-                break;
-            }
-            else {
-                count++;
-                if (count == 5){
-                    printf("\nToo many wrong attempts\n\n");
-                    exit(0);
-                }
-                else { 
-                    printf("Password is not correct, please try again.\n\n");
-                }
-            }} 
-            while (true);
-        
+        passwordCheck();
+        adminpanel();
     }
 
     else if (choice == 2){
@@ -78,7 +60,7 @@ int mainMenu()
     return choice;
 }
 
-int passwordCheck()
+void passwordCheck()
 {
 	FILE *checkpas;
     char real_pw[20] ;
@@ -86,13 +68,29 @@ int passwordCheck()
     int check;
     
 	checkpas = fopen("adminpassword.txt","r");
-	printf("%s",checkpas);
 	fgets(real_pw,50,checkpas);
-    printf("\nPassword: ");
-    scanf("%s", &input_pw);
-    check = strcmp(input_pw, real_pw);
-    return check;
+
+    int count = 0;
+        do { 
+            printf("\nPassword: ");
+            scanf("%s", &input_pw);
+            check = strcmp(input_pw, real_pw);
+            if (check == 0){
+				printf("Password is correct\n\n");
+                break;
+            }
+            else {
+                count++;
+                if (count == 5){
+                    printf("\nToo many wrong attempts\n\n");
+                    exit(0);
+                }
+                else { 
+                    printf("Password is not correct, please try again.\n\n");
+                }
+            }} while (true);  
 }
+
 void changepass(){
 	FILE *password ;
 	password = fopen("adminpassword.txt","a+");
@@ -168,15 +166,17 @@ void listflight(){
 }
 void adminpanel(){
 	        int choice;
-            printf("Welcome to Admin Panel\n");
+            system("clear");
+            printf("\nWelcome to Admin Panel\n\n");
             printf("1- Add/Edit/Delete Flights\n");
             printf("2- List available flights\n");
             printf("3- List current bookings\n");
-            printf("4- Change admin password\n");
-            printf("Select an Option:\n");
-            scanf("%d",&choice);
+            printf("4- Change admin password\n\n");
+            printf("Select an Option:");
+            scanf("%d\n",&choice);
+
 			if (choice == 1){
-				printf("Sadece add flight eklendi:");
+				printf("Sadece add flight eklendi:\n");
 				addflight();}
             else if (choice == 2)
             	listflight();
