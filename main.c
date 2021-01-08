@@ -40,7 +40,7 @@ int main() {
     else {
         printf("Please enter a valid value\n");
     }
-	printf("Hacked by Emirhan")
+	printf("Hacked by Emirhan");
     return 0;
 
 }
@@ -68,10 +68,14 @@ int mainMenu()
 
 int passwordCheck()
 {
-    char real_pw[20] = "admin123";
+	FILE *checkpas;
+    char real_pw[20] ;
     char input_pw[20];
     int check;
-
+    
+	checkpas = fopen("adminpassword.txt","r");
+	printf("%s",checkpas);
+	fgets(real_pw,50,checkpas);
     printf("\nPassword: ");
     scanf("%s", &input_pw);
 
