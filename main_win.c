@@ -12,6 +12,7 @@ void editflight();
 void listflight();
 void passengerMenu();
 void bookFlight();
+void filterFlights(char departure[50], char destination[50]);
 
 struct Flight{ 
 char airline[50];
@@ -296,7 +297,7 @@ void bookFlight()
 {	
 	char departure[50], destination[50];
 
-	system("cls");
+	system("clear");
 
 	printf("\n Please provide departure and destination airport information\n\n");
 	printf("Departure: ");
@@ -304,8 +305,32 @@ void bookFlight()
 	printf("\nDestination: ");
 	scanf("%s", destination);
 
-	printf("%s \n", departure);
-	printf("%s",destination);
+    filterFlights(departure, destination);
 }
+
+void filterFlights(char departure[50], char destination[50])
+{
+	int found = 0;
+	
+	struct Flight filter;
+	FILE *filefilter;
+	filefilter = fopen("flights.txt","r");
+
+    printf("\n\tFlight Code\t\tDeparture\t\tDestination\t\tDeparture Time\t\t Arrival Time\n");
+    printf("----------------------------------------------------------------------------------------------------------------------\n");
+
+	while (fread(&filter,sizeof(struct Flight),1,filefilter)){
+		if (strcmp(filter.departure_airport,departure) == 0 && strcmp(filter.destination_airport, destination) == 0){
+			found = 1;
+			printf("\t%s\t\t\t%s\t\t%s\t\t\t%s\t\t%s\n", filter.flight_code, filter.departure_airport, filter.destination_airport, filter.time_of_departure, filter.time_of_arrival);
+        }	
+	}
+    printf("\n\n\n");
+	if (found == 0)
+		printf("\nNo flight found\n\n");
+
+	fclose(filefilter);
+}
+
 
 
