@@ -7,6 +7,7 @@ int mainMenu();
 void passwordCheck();
 void adminpanel();
 void addflight();
+void passengerMenu();
 
 struct Flight{ 
 char airline[50];
@@ -19,7 +20,7 @@ char passenger_capacity[50];
 };
 
 int main() {
-    int choice, check;
+    int choice;
     choice = mainMenu();
 
     if (choice == 1){
@@ -28,7 +29,7 @@ int main() {
     }
 
     else if (choice == 2){
-        printf("2\n");
+        passengerMenu();
     }
 
     else {
@@ -165,28 +166,66 @@ void listflight(){
 	}	
 }
 void adminpanel(){
-	        int choice;
-            system("clear");
-            printf("\nWelcome to Admin Panel\n\n");
-            printf("1- Add/Edit/Delete Flights\n");
-            printf("2- List available flights\n");
-            printf("3- List current bookings\n");
-            printf("4- Change admin password\n\n");
-            printf("Select an Option:");
-            scanf("%d\n",&choice);
+	int admin_choice, inp;
 
-			if (choice == 1){
-				printf("Sadece add flight eklendi:\n");
-				addflight();}
-            else if (choice == 2)
-            	listflight();
-            else if (choice == 3)
-            	printf("3- Not implemented");
-            else if (choice == 4)
-            	printf("4- Not implemented");
-            else {
-            	printf("invalid option");
-			}
+    system("clear");
+
+    printf("\nWelcome to Admin Panel\n\n");
+    printf("1- Add/Edit/Delete Flights\n");
+    printf("2- List available flights\n");
+    printf("3- List current bookings\n");
+    printf("4- Change admin password\n\n");
+    printf("Select an Option:");
+
+    scanf("%d",&inp);
+	admin_choice = inp;
+
+	if (admin_choice == 1){
+		printf("Sadece add flight eklendi:\n");
+		addflight();
+	}
+    else if (admin_choice == 2)
+    	listflight();
+    else if (admin_choice == 3)
+    	printf("3- Not implemented");
+    else if (admin_choice == 4)
+    	printf("4- Not implemented");
+    else {
+    	printf("invalid option");
+	}
+}
+
+
+void passengerMenu() 
+{	
+	int passenger_choice, inp;
+
+	system("clear");
+
+	printf("\n\tPassenger Menu\n\n");
+	printf("1- Book a flight\n");
+	printf("2- Cancel a booking\n");
+	printf("3- List booked flights\n");
+	printf("\n9- Return to main menu\n\n");
+
+	scanf("%d", &inp);
+	passenger_choice = inp;
+
+	if (passenger_choice == 1) {
+		printf("\n\nBooking section is under progress...\n");
+	}
+	else if (passenger_choice == 2) {
+		printf("\n\nThis section is in development2...\n");
+	}
+	else if (passenger_choice == 3) {
+		printf("\n\nThis section is in development3...\n");
+	}
+	else if (passenger_choice == 9) {
+		main();
+	}
+	else {
+		printf("Please enter valid value\n");
+	}
 }
 
 
