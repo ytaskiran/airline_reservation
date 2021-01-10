@@ -504,10 +504,10 @@ void bookFlight()
 	printf("\nDestination: ");
 	scanf("%s", destination);
 
-    filterFlights(departure, destination); //Display the flights for desired departure and destination location
-
 	while (true) {
 		int select, flag;
+
+		filterFlights(departure, destination); //Display the flights for desired departure and destination location
 
 		printf("\n1- Continue");
 		printf("\n9- Return to Main Menu\n\n-> ");
@@ -552,7 +552,7 @@ void bookFlight()
 
 	FILE *addfile;
 	addfile = fopen("tickets.txt","a+");
-	fwrite(&newticket, sizeof(struct Flight),1, addfile);		
+	fwrite(&newticket, sizeof(struct Ticket),1, addfile);		
 	fclose(addfile);
 
 	printf("\n\nYour booking is successful \n");
@@ -602,10 +602,10 @@ int checkSeats(char flightnum[6])
 
 	while (fread(&cap, sizeof(struct Flight), 1, fileseatcap)){
 		if (strcmp(cap.flight_code, flightnum) == 0){
-			CAPACITY = atoi(cap.passenger_capacity);
+			CAPACITY = atoi(cap.passenger_capacity); //convert to int
 		}
 	}
-	int count = 0;
+	int SIZE = 0;
 	int seats_taken[CAPACITY+1];
 	int available_seats[CAPACITY+1];
 
@@ -615,37 +615,48 @@ int checkSeats(char flightnum[6])
 
 	while (fread(&check, sizeof(struct Ticket), 1, filecheck)){
 		if (strcmp(check.flight_num, flightnum) == 0){
-			seats_taken[count] = check.seat_num;
-			count++;
+			seats_taken[SIZE] = check.seat_num;
+			SIZE++;
 		}}
-	if (count == CAPACITY){
-		printf("seats are full");
+	fclose(filecheck);
+
+	if (SIZE == CAPACITY){
+		printf("Seats are full\n");
 		return 0;
 	}
-	
-	fclose(filecheck);
-	int SIZE = sizeof seats_taken / sizeof *seats_taken;
-	int found, i=0, seat=1, j=0;
 
-	for (seat=1; seat<=CAPACITY; seat++){
-		found = 0;
-		for (j=0; j<SIZE; j++){
-			if (seat == seats_taken[j]){
-				found = 1;
+	else if (SIZE == 0){
+		int x=0;
+		printf("\nAvailable seats: ");
+		for (x=1; x<=CAPACITY; x++){
+			printf("%d ", x);
+		}
+		return 1;
+	}
+	
+	
+	else {
+		int found, i=0, seat=1, j=0;
+
+		for (seat=1; seat<=CAPACITY; seat++){
+			found = 0;
+			for (j=0; j<SIZE; j++){
+				if (seat == seats_taken[j]){
+					found = 1;
+				}
+			}
+			if (found == 0){
+				available_seats[i] = seat;
+				i++;
 			}
 		}
-		if (found == 0){
-			available_seats[i] = seat;
-			i++;
+		printf("\nAvailable seats: ");
+		int itr=0;
+		for (itr=0; itr<i; itr++){
+			printf("%d  ", available_seats[itr]);
 		}
+		return 1;
 	}
-	CAPACITY = CAPACITY - count;
-	printf("\nAvailable seats: ");
-	int itr=0;
-	for (itr=0; itr<CAPACITY; itr++){
-		printf("%d  ", available_seats[itr]);
-	}
-	return 1;
 }
 
 const char * assignBookingID()
@@ -654,12 +665,14 @@ const char * assignBookingID()
 	Assigns a unique booking id
 	for passenger's ticket
 	*/
-	static char bookingid[6];
+	char bookingid[10];
+	static char id[10];
 	int idint;
 	FILE *fileassign, *filenewid;
 	fileassign = fopen("bookingid.txt", "r");
 
 	fscanf(fileassign, "%s", bookingid);
+	strcpy(id, bookingid);
 	idint = atoi(bookingid);
 	idint++;
 	sprintf(bookingid, "%d", idint);
@@ -669,7 +682,7 @@ const char * assignBookingID()
 	fclose(fileassign);
 	fclose(filenewid);
 
-	return bookingid;
+	return id;
 }
 
 void cancelBooking()
@@ -774,7 +787,7 @@ void checkTicket(char name[30], char id_num[30])
 	while (fread(&filter,sizeof(struct Ticket),1,filefilter)){
 		if (strcmp(filter.name, name) == 0 && strcmp(filter.id, id_num) == 0){
 			found = 1;
-			printf("\t%s\t\t\t%s\t\t%s\t\t\t%s\t\t%d\n", filter.bookingID, filter.flight_num, filter.name, filter.id, filter.seat_num);
+			printf("\t%s\t\t\t%s\t\t\t%s\t\t%s\t\t%d\n", filter.bookingID, filter.flight_num, filter.name, filter.id, filter.seat_num);
 		}	
 	}
     printf("\n\n\n");
@@ -805,20 +818,13 @@ void listBookings(){
 	FILE *listbookings;
 	listbookings = fopen("tickets.txt","r");
 	struct Ticket listticket;
-	printf("Bookings ");
-	printf("| Booking ID  | Flight Code | Passenger Name | Passenger ID | Seat Number |");
-	printf("\n-----------------------------------------------------------------------------------");
+	printf("|  Booking ID   |  Flight Code  |  Passenger Name  |  Passenger ID  |  Seat Number  |");
+	printf("\n--------------------------------------------------------------------------------------\n");
 	while (fread(&listticket,sizeof(struct Ticket),1,listbookings)){
-		printf("| %s | %s | %s | %s | %d |", listticket.bookingID, listticket.flight_num, listticket.name, listticket.id, listticket.seat_num);
+		printf("|\t%s\t|\t%s\t|\t%s\t   |\t  %s\t    |\t   %d\t  |\n", listticket.bookingID, listticket.flight_num, listticket.name, listticket.id, listticket.seat_num);
 	}
 	fclose(listbookings);
-	sleep(3);
-	printf("\n\nPress '0' to return Admin Panel -> ");
-	scanf("%c", &choice);
-	sleep(3);
-	if (choice = '0')
-		passengerMenu();
-	else
-		passengerMenu();
-	sleep(10);
+	printf("\n\nPress any key to return Admin Panel -> ");
+	scanf(" %c", &choice);
+	passengerMenu();
 }
