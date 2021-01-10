@@ -12,9 +12,13 @@ void addflight();
 void deleteflight();
 void editflight();
 void listflight();
+void changepass();
 void passengerMenu();
 void bookFlight();
 void delay(); 
+void filterFlights(char departure[50], char destination[50]);
+int checkSeats(char flightnum[6]);
+const char * assignBookingID();
 
 struct Flight{ 
 char airline[50];
@@ -25,6 +29,15 @@ char time_of_departure[50];
 char time_of_arrival[50];
 char passenger_capacity[50];
 };
+
+struct Ticket{ 
+char bookingID[10];
+char flight_num[10];
+char name[50];
+char id[20];
+int seat_num;
+};
+
 
 #if defined(_WIN32)
 	void clear(){
@@ -44,11 +57,9 @@ int main() {
     if (choice == 1){
         passwordCheck();
         adminPanel();
-    }
-
-    else if (choice == 2){
+		}
+    else if (choice == 2)
         passengerMenu();
-    }
     
     else if (choice == 3)
     	exit(1);
@@ -56,9 +67,7 @@ int main() {
     else {
         printf("Please enter a valid value\n");
     }
-    
     return 0;
-
 }
 
 int mainMenu() 
@@ -84,7 +93,7 @@ int mainMenu()
 void passwordCheck()
 {
 	FILE *checkpas;
-    char real_pw[20] ;
+    char real_pw[20];
     char input_pw[20];
     int check;
     
@@ -94,7 +103,7 @@ void passwordCheck()
     int count = 0;
         do { 
             printf("\nPassword: ");
-            scanf("%s", &input_pw);
+            scanf("%s", input_pw);
             check = strcmp(input_pw, real_pw);
             if (check == 0){
 				printf("Password is correct\n\n");
@@ -114,7 +123,9 @@ void passwordCheck()
 
 void adminPanel(){
 	        int admin_choice, inp;
-            system("cls");
+
+            clear();
+
             printf("\n\tWelcome to Admin Panel\n\n");
             printf("1- Add a new flight\n");
 			printf("2- Edit a flight\n");
@@ -141,9 +152,6 @@ void adminPanel(){
 			}	
             else if (admin_choice == 4){
             	listflight();
-				printf("Press any key to continue");
-				getch();
-				adminPanel();
 			}
 			else if (admin_choice == 5){
             	printf("Under Development");
@@ -167,13 +175,13 @@ void changepass(){
 	fclose(password);
 
 	printf("Enter Old Password:");
-	scanf("%s",&inputpassword);
+	scanf("%s", inputpassword);
 
 	if(strcmp(inputpassword, oldpassword) == 0 ){
 		printf("Correct! Enter New Password:");
-		scanf("%s",newpassword);
+		scanf("%s", newpassword);
 		printf("Enter New Password:");
-		scanf("%s",newpassword2);
+		scanf("%s", newpassword2);
 
 		if (strcmp(newpassword,newpassword2) == 0){
 			password = fopen("adminpassword.txt","w");
@@ -251,7 +259,7 @@ void editflight(){
 	printf("----Edit Flight Screen----\n");
 	listflight();
 	printf("Enter Flight Code to select an flight:\n");
-	scanf("%s",&edflightchoice);
+	scanf("%s", edflightchoice);
 	clear();
 	printf("Flight Code: %s selected\n",edflightchoice);
 	printf("0- Return to Admin Menu\n");
@@ -260,16 +268,16 @@ void editflight(){
 	printf("2- Flight Code\n");
 	printf("3- Departure Airport\n");
 	printf("4- Destination Airport\n");
-	printf("5-Departure Time\n");
-	printf("6-Arrival Time\n");
-	printf("7-Passenger Capacity\n");
+	printf("5- Departure Time\n");
+	printf("6- Arrival Time\n");
+	printf("7- Passenger Capacity\n");
 	printf("-----------------------\n");
 	printf("Enter the feature you want to edit: ");
 	scanf("%d",&edchoice);
 	if (edchoice == 0)
 		adminPanel();
 	printf("\nEnter new version of the feature: ");
-	scanf("%s",&newfeature);
+	scanf("%s", newfeature);
 	FILE *f_edit, *tempfile;
 	struct Flight edit;
 	f_edit = fopen("flights.txt","a+");
@@ -318,7 +326,7 @@ void deleteflight(){
 	int found = 0;
 
 	printf("Flight code of the record you want to delete: ");
-	scanf("%s",&deletecode);
+	scanf("%s", deletecode);
 
 	struct Flight del;
 	FILE *filedelete, *tempfile;
@@ -336,7 +344,7 @@ void deleteflight(){
 	while (fread(&del,sizeof(struct Flight),1,filedelete)){
 		if (strcmp(del.flight_code,deletecode) == 0){
 			found = 1;
-			printf("Flight Code: %s deleted...\n",&deletecode);}
+			printf("Flight Code: %s deleted...\n", deletecode);}
 		else 
 			fwrite(&del,sizeof(struct Flight),1,tempfile);
 	}
@@ -402,6 +410,9 @@ void passengerMenu()
 void bookFlight()
 {	
 	char departure[50], destination[50];
+	char flightnum[6];
+	char name[20], id[20];
+	int selectedSeat, bookingID;
 
 	clear();
 
@@ -410,11 +421,164 @@ void bookFlight()
 	scanf("%s", departure);
 	printf("\nDestination: ");
 	scanf("%s", destination);
-	printf("%s \n", departure);
-	printf("%s",destination);
+
+    filterFlights(departure, destination);
+
+	while (true) {
+		int select, flag;
+
+		printf("\n1- Continue");
+		printf("\n9- Return to main menu\t");
+		scanf("%d", &select);
+
+		if (select == 1){
+			printf("\nSelect flight - Enter the flight number: ");
+			scanf("%s", flightnum);
+			flag = checkSeats(flightnum);
+
+			if (flag == 1){
+				break;
+			}
+			else if (flag == 0){
+				printf("\nThis flight is full, consider another option\n");
+			}
+		}
+		else if (select == 9){
+			passengerMenu();
+		}
+		else {
+			printf("\nInvalid option");
+		}
+	}
+	printf("\n\nPlease select a seat: ");
+	scanf("%d", &selectedSeat);
+
+	printf("\n\nYour name: ");
+	scanf("%s", name);
+	printf("\nYour ID number: ");
+	scanf("%s", id);
+	
+	const char* bookingid = assignBookingID();
+	printf("\n Your booking id is: %s", bookingid);	
+	
+	struct Ticket newticket;
+	strcpy(newticket.bookingID, bookingid);
+	strcpy(newticket.flight_num, flightnum);
+	strcpy(newticket.name, name);
+	strcpy(newticket.id, id);
+	newticket.seat_num = selectedSeat;
+
+	FILE *addfile;
+	addfile = fopen("tickets.txt","a+");
+	fwrite(&newticket, sizeof(struct Flight),1, addfile);		
+	fclose(addfile);
+
+	printf("\n\nYour booking is successful \n");
+	delay(2);
+	passengerMenu();
 }
 
-void delay(int number_of_seconds) // Ýneternetten aldým. Biraz deðiþtirelim.
+void filterFlights(char departure[50], char destination[50])
+{
+	int found = 0;
+	
+	struct Flight filter;
+	FILE *filefilter;
+	filefilter = fopen("flights.txt","r");
+
+    printf("\n\n\tFlight Code\t\tDeparture\t\tDestination\t\tDeparture Time\t\t Arrival Time\n");
+    printf("----------------------------------------------------------------------------------------------------------------------\n");
+
+	while (fread(&filter,sizeof(struct Flight),1,filefilter)){
+		if (strcmp(filter.departure_airport,departure) == 0 && strcmp(filter.destination_airport, destination) == 0){
+			found = 1;
+			printf("\t%s\t\t\t%s\t\t%s\t\t\t%s\t\t%s\n", filter.flight_code, filter.departure_airport, filter.destination_airport, filter.time_of_departure, filter.time_of_arrival);
+        }	
+	}
+    printf("\n\n\n");
+	if (found == 0)
+		printf("\nNo flight found\n\n");
+
+	fclose(filefilter);
+}
+
+int checkSeats(char flightnum[6])
+{	
+	clear();
+
+	int CAPACITY;
+	struct Flight cap;
+	FILE *fileseatcap;
+	fileseatcap = fopen("flights.txt", "r");
+
+	while (fread(&cap, sizeof(struct Flight), 1, fileseatcap)){
+		if (strcmp(cap.flight_code, flightnum) == 0){
+			CAPACITY = atoi(cap.passenger_capacity);
+		}
+	}
+	int count = 0;
+	int seats_taken[CAPACITY+1];
+	int available_seats[CAPACITY+1];
+
+	struct Ticket check;
+	FILE *filecheck;
+	filecheck = fopen("tickets.txt","r");
+
+	while (fread(&check, sizeof(struct Ticket), 1, filecheck)){
+		if (strcmp(check.flight_num, flightnum) == 0){
+			seats_taken[count] = check.seat_num;
+			count++;
+		}}
+	if (count == CAPACITY){
+		printf("seats are full");
+		return 0;
+	}
+	
+	fclose(filecheck);
+	int SIZE = sizeof seats_taken / sizeof *seats_taken;
+	int found, i=0;
+
+	for (int seat=1; seat<=CAPACITY; seat++){
+		found = 0;
+		for (int j=0; j<SIZE; j++){
+			if (seat == seats_taken[j]){
+				found = 1;
+			}
+		}
+		if (found == 0){
+			available_seats[i] = seat;
+			i++;
+		}
+	}
+	CAPACITY = CAPACITY - count + 1;
+	printf("\nAvailable seats: ");
+	for (int i=0; i<CAPACITY; i++){
+		printf("%d  ", available_seats[i]);
+	}
+	return 1;
+}
+
+const char * assignBookingID()
+{
+	static char bookingid[6];
+	int idint;
+	FILE *fileassign, *filenewid;
+	fileassign = fopen("bookingid.txt", "r");
+
+	fscanf(fileassign, "%s", bookingid);
+	idint = atoi(bookingid);
+	idint++;
+	sprintf(bookingid, "%d", idint);
+	filenewid = fopen("bookingid.txt", "w");
+	fprintf(filenewid, "%s", bookingid);
+
+	fclose(fileassign);
+	fclose(filenewid);
+
+	return bookingid;
+}
+
+void delay(int number_of_seconds) // 
 { 
     // Converting time into milli_seconds 
     int milli_seconds = 1000 * number_of_seconds; 
