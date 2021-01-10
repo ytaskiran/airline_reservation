@@ -4,6 +4,11 @@
 #include <stdbool.h>
 #include <time.h> 
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 
 int mainMenu();
 void adminPanel();
@@ -15,10 +20,14 @@ void listflight();
 void changepass();
 void passengerMenu();
 void bookFlight();
-void delay(); 
 void filterFlights(char departure[50], char destination[50]);
 int checkSeats(char flightnum[6]);
 const char * assignBookingID();
+void cancelBooking();
+void deleteTicket(char bookingid[6]);
+void listBookedFlights();
+const char *checkTicket(char name[30],char id_num[30]);
+void displayFlightInfo(const char* flight_num);
 
 struct Flight{ 
 char airline[50];
@@ -189,18 +198,18 @@ void changepass(){
 			fclose(password);
 			printf("Password Changed Successfully\n");
 			printf("Directing to main menu");
-			delay(2);
+			sleep(2);
 			main();}
 		else{
 			printf("Different passwords have been entered\n");
 			printf("Directing to main menu...");
-			delay(2);
+			sleep(2);
 			main();}
 		}
 	else {
 		printf("Wrong Password\n");
 		printf("Directing to main menu...");
-		delay(2);
+		sleep(2);
 		main();
 	}
 }
@@ -318,7 +327,7 @@ void editflight(){
 	remove("flights.txt");
 	rename("temp.txt","flights.txt");
 	printf("Directing to admin panel...");
-	delay(2); 
+	sleep(2); 
 	adminPanel();
 }
 void deleteflight(){
@@ -356,18 +365,18 @@ void deleteflight(){
 	remove("flights.txt");
 	rename("temp.txt","flights.txt");
 	printf("Directing to admin panel...");
-	delay(3); 
+	sleep(3); 
 	adminPanel();}
 	else if (yesno == 'n'){
 		printf("Answered No\n");
 		printf("Directing to admin panel...");
-		delay(3); 
+		sleep(3); 
 		adminPanel();
 	}
 	else {
 		printf("Invalid Option\n");
 		printf("Directing to admin panel...");
-		delay(3); 
+		sleep(3); 
 		adminPanel();
 	}
 }
@@ -394,10 +403,10 @@ void passengerMenu()
 		bookFlight();	
 	}
 	else if (passenger_choice == 2) {
-		printf("\n\nThis section is in development2...\n");
+		cancelBooking();
 	}
 	else if (passenger_choice == 3) {
-		printf("\n\nThis section is in development3...\n");
+		listBookedFlights();
 	}
 	else if (passenger_choice == 9) {
 		main();
@@ -474,7 +483,7 @@ void bookFlight()
 	fclose(addfile);
 
 	printf("\n\nYour booking is successful \n");
-	delay(2);
+	sleep(2);
 	passengerMenu();
 }
 
@@ -536,11 +545,11 @@ int checkSeats(char flightnum[6])
 	
 	fclose(filecheck);
 	int SIZE = sizeof seats_taken / sizeof *seats_taken;
-	int found, i=0;
+	int found, i=0, seat=1, j=0;
 
-	for (int seat=1; seat<=CAPACITY; seat++){
+	for (seat=1; seat<=CAPACITY; seat++){
 		found = 0;
-		for (int j=0; j<SIZE; j++){
+		for (j=0; j<SIZE; j++){
 			if (seat == seats_taken[j]){
 				found = 1;
 			}
@@ -552,8 +561,9 @@ int checkSeats(char flightnum[6])
 	}
 	CAPACITY = CAPACITY - count + 1;
 	printf("\nAvailable seats: ");
-	for (int i=0; i<CAPACITY; i++){
-		printf("%d  ", available_seats[i]);
+	int itr=0;
+	for (itr=0; itr<CAPACITY; itr++){
+		printf("%d  ", available_seats[itr]);
 	}
 	return 1;
 }
@@ -578,17 +588,117 @@ const char * assignBookingID()
 	return bookingid;
 }
 
-void delay(int number_of_seconds) // 
-{ 
-    // Converting time into milli_seconds 
-    int milli_seconds = 1000 * number_of_seconds; 
-  
-    // Storing start time 
-    clock_t start_time = clock(); 
-  
-    // looping till required time is not achieved 
-    while (clock() < start_time + milli_seconds) 
-        ; 
-} 
+void cancelBooking()
+{
+	static char bookingid[6];
+
+	clear();
+	printf("\nYour booking id: ");
+	scanf("%s", bookingid);
+
+	deleteTicket(bookingid);
+}
+
+void deleteTicket(char bookingid[6])
+{
+	int found = 0;
+	char yesno;
+
+	struct Ticket del;
+	FILE *filedel, *tempfile;
+	filedel = fopen("tickets.txt", "r");
+	tempfile = fopen("temp.txt","w");
+
+	while (fread(&del, sizeof(struct Ticket), 1, filedel)){
+		if (strcmp(del.bookingID, bookingid) == 0){
+			found = 1;
+			printf("Your booking will be canceled\n");
+			printf("Are you sure?(y/n): ");
+			scanf(" %c", &yesno);
+
+			if (yesno == 'y') {
+				printf("\n\nYour booking is canceled");
+			}
+		}
+		else 
+			fwrite(&del, sizeof(struct Ticket), 1, tempfile);
+	}
+	if (found == 0)
+		printf("\n\nNo ticket found with this booking id\n");
+
+	fclose(filedel);
+	fclose(tempfile);
+
+	remove("tickets.txt");
+	rename("temp.txt","tickets.txt");
+	sleep(3);
+	passengerMenu();
+}
+
+void listBookedFlights()
+{
+	static char name[30], id_num[30];
+	int detailed;
+
+	clear();
+	printf("\nYour name: ");
+	scanf("%s", name);
+	printf("\nYour ID: ");
+	scanf("%s", id_num);
+
+	const char* flight_num = checkTicket(name, id_num);
+	sleep(5);
+	
+	printf("\n\nPress '1' for more detailed flight information or '0' to return to main menu: ");
+	scanf("%d", &detailed);
+
+	if (detailed == 1){
+		displayFlightInfo(flight_num);
+	}
+	else if (detailed == 0)
+		main();
 
 
+
+}
+
+const char * checkTicket(char name[30], char id_num[30])
+{
+	int found = 0;
+	static char flight_num[20];
+
+	struct Ticket filter;
+	FILE *filefilter;
+	filefilter = fopen("tickets.txt","r");
+
+    printf("\n\n\tBooking ID\t\tFlight Number\t\tName\t\tID\t\tSeat Number\n");
+    printf("----------------------------------------------------------------------------------------------------------------------\n");
+
+	while (fread(&filter,sizeof(struct Ticket),1,filefilter)){
+		if (strcmp(filter.name, name) == 0 && strcmp(filter.id, id_num) == 0){
+			found = 1;
+			flight_num[20] = filter.flight_num;
+			printf("\t%s\t\t\t%s\t\t%s\t\t\t%s\t\t%s\n", filter.bookingID, filter.flight_num, filter.name, filter.id, filter.seat_num);
+		}	
+	}
+    printf("\n\n\n");
+	if (found == 0)
+		printf("\nNo flight found\n\n");
+
+	fclose(filefilter);
+
+	return flight_num;
+}
+
+void displayFlightInfo(const char* flight_num)
+{
+	struct Flight info;
+	FILE *fileinfo;
+	fileinfo = fopen("flights.txt","r");
+
+	while (fread(&info,sizeof(struct Flight),1,fileinfo)){
+		if (strcmp(info.flight_code,flight_num) == 0) {
+			printf("\nAirline: %s\nFlight Code: %s\nDeparture Airport: %s\nDestination Airport: %s\nDeparture Time: %s\nArrival Time: %s\nPassenger Capacity: %s\n-------------------------------------\n",info.airline,info.flight_code,info.departure_airport,info.destination_airport,info.time_of_departure,info.time_of_arrival,info.passenger_capacity);
+        }	
+	}
+}
