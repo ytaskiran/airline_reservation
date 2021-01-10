@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h> 
 
 int mainMenu();
 void adminPanel();
@@ -12,8 +13,7 @@ void editflight();
 void listflight();
 void passengerMenu();
 void bookFlight();
-void filterFlights(char departure[50], char destination[50]);
-
+void delay(); 
 struct Flight{ 
 char airline[50];
 char flight_code[50];
@@ -111,7 +111,7 @@ void adminPanel(){
             printf("5- List current bookings\n");
             printf("6- Change admin password\n\n");
 			printf("9- Return to main menu \n\n\n");
-            printf("Select an Option:");
+            printf("Select an Option: ");
             scanf("%d",&inp);
 
 			admin_choice = inp;
@@ -129,12 +129,15 @@ void adminPanel(){
 			}	
             else if (admin_choice == 4){
             	listflight();
+				printf("Press any key to continue");
+				getch();
+				adminPanel();
 			}
 			else if (admin_choice == 5){
             	printf("Under Development");
 			}
 			else if (admin_choice == 6){
-            	printf("Under Development");
+            	changepass();
 			}
 			else if (admin_choice == 9){
             	main();
@@ -160,18 +163,24 @@ void changepass(){
 		printf("Enter New Password:");
 		scanf("%s",newpassword2);
 
-		if (strcmp(newpassword,newpassword2)){
+		if (strcmp(newpassword,newpassword2) == 0){
 			password = fopen("adminpassword.txt","w");
 			fputs(newpassword,password);
 			fclose(password);
-			printf("Password Changed Successfully");
+			printf("Password Changed Successfully\n");
+			printf("Directing to main menu");
+			delay(2);
 			main();}
 		else{
-			printf("Different passwords have been entered");
+			printf("Different passwords have been entered\n");
+			printf("Directing to main menu...");
+			delay(2);
 			main();}
 		}
 	else {
-		printf("Wrong Password");
+		printf("Wrong Password\n");
+		printf("Directing to main menu...");
+		delay(2);
 		main();
 	}
 }
@@ -222,14 +231,78 @@ void listflight(){
 			printf("Number: %d\nAirline: %s\nFlight Code: %s\nDeparture Airport: %s\nDestination Airport: %s\nDeparture Time: %s\nArrival Time: %s\nPassenger Capacity: %s\n-------------------------------------\n",i,d2.airline,d2.flight_code,d2.departure_airport,d2.destination_airport,d2.time_of_departure,d2.time_of_arrival,d2.passenger_capacity);
 			i++;
 		}
-		fclose(reading);
 }
 
 void editflight(){
-	printf("Not implemented");
+	int edchoice,found = 0;
+	char newfeature[50], edflightchoice[50];
+	printf("----Edit Flight Screen----\n");
+	listflight();
+	printf("Enter Flight Code to select an flight:\n");
+	scanf("%s",&edflightchoice);
+	system("cls");
+	printf("Flight Code: %s selected\n",edflightchoice);
+	printf("0- Return to Admin Menu\n");
+	printf("-----------------------\n");
+	printf("1- Airline\n");
+	printf("2- Flight Code\n");
+	printf("3- Departure Airport\n");
+	printf("4- Destination Airport\n");
+	printf("5-Departure Time\n");
+	printf("6-Arrival Time\n");
+	printf("7-Passenger Capacity\n");
+	printf("-----------------------\n");
+	printf("Enter the feature you want to edit: ");
+	scanf("%d",&edchoice);
+	if (edchoice == 0)
+		adminPanel();
+	printf("\nEnter new version of the feature: ");
+	scanf("%s",&newfeature);
+	FILE *f_edit, *tempfile;
+	struct Flight edit;
+	f_edit = fopen("flights.txt","a+");
+	tempfile = fopen("temp.txt","w");
+	while (fread(&edit,sizeof(struct Flight),1,f_edit)){
+		if (strcmp(edit.flight_code,edflightchoice) == 0){
+			found = 1;
+			if (edchoice == 1)
+				strcpy(edit.airline, newfeature);
+			else if (edchoice == 2)
+				strcpy(edit.flight_code, newfeature);
+			else if (edchoice == 3)
+				strcpy(edit.departure_airport, newfeature);
+			else if (edchoice == 4)
+				strcpy(edit.destination_airport, newfeature);
+			else if (edchoice == 5)
+				strcpy(edit.time_of_departure, newfeature);
+			else if (edchoice == 6)
+				strcpy(edit.time_of_arrival, newfeature);
+			else if (edchoice == 7) 
+				strcpy(edit.passenger_capacity, newfeature);
+			else{
+				printf("Invalid option");
+				printf("Please Try Again");
+				editflight();}			
+			fwrite(&edit,sizeof(struct Flight),1,tempfile);
+			printf("Changes Saved\n");
+	}
+		else 
+			fwrite(&edit,sizeof(struct Flight),1,tempfile);
+	}
+	if (found == 0){
+		printf("No flight found");
+		editflight();
+}
+	fclose(f_edit);
+	fclose(tempfile);
+	remove("flights.txt");
+	rename("temp.txt","flights.txt");
+	printf("Directing to admin panel...");
+	delay(2); 
+	adminPanel();
 }
 void deleteflight(){
-	char deletecode[50];
+	char deletecode[50], yesno;
 	int found = 0;
 
 	printf("Flight code of the record you want to delete: ");
@@ -239,9 +312,15 @@ void deleteflight(){
 	FILE *filedelete, *tempfile;
 	filedelete = fopen("flights.txt","r");
 	tempfile = fopen("temp.txt","w");
-
-	printf("Deletion is in progress\n");
-
+	printf("Flight code %s will be deleted\n",deletecode);
+	printf("Are you sure?(y/n): ");
+	
+	scanf(" %c",&yesno);
+	if (yesno == 'y')
+	{
+		
+	printf("\nDeletion is in progress\n");
+	
 	while (fread(&del,sizeof(struct Flight),1,filedelete)){
 		if (strcmp(del.flight_code,deletecode) == 0){
 			found = 1;
@@ -250,12 +329,27 @@ void deleteflight(){
 			fwrite(&del,sizeof(struct Flight),1,tempfile);
 	}
 	if (found == 0)
-		printf("No flight found with this code");
+		printf("No flight found with this code\n");
 
 	fclose(filedelete);
 	fclose(tempfile);
 	remove("flights.txt");
 	rename("temp.txt","flights.txt");
+	printf("Directing to admin panel...");
+	delay(3); 
+	adminPanel();}
+	else if (yesno == 'n'){
+		printf("Answered No\n");
+		printf("Directing to admin panel...");
+		delay(3); 
+		adminPanel();
+	}
+	else {
+		printf("Invalid Option\n");
+		printf("Directing to admin panel...");
+		delay(3); 
+		adminPanel();
+	}
 }
 void listcurrentbookings(){
 	printf("Not implemented");
@@ -297,40 +391,28 @@ void bookFlight()
 {	
 	char departure[50], destination[50];
 
-	system("clear");
+	system("cls");
 
 	printf("\n Please provide departure and destination airport information\n\n");
 	printf("Departure: ");
 	scanf("%s", departure);
 	printf("\nDestination: ");
 	scanf("%s", destination);
-
-    filterFlights(departure, destination);
+	printf("%s \n", departure);
+	printf("%s",destination);
 }
 
-void filterFlights(char departure[50], char destination[50])
-{
-	int found = 0;
-	
-	struct Flight filter;
-	FILE *filefilter;
-	filefilter = fopen("flights.txt","r");
-
-    printf("\n\tFlight Code\t\tDeparture\t\tDestination\t\tDeparture Time\t\t Arrival Time\n");
-    printf("----------------------------------------------------------------------------------------------------------------------\n");
-
-	while (fread(&filter,sizeof(struct Flight),1,filefilter)){
-		if (strcmp(filter.departure_airport,departure) == 0 && strcmp(filter.destination_airport, destination) == 0){
-			found = 1;
-			printf("\t%s\t\t\t%s\t\t%s\t\t\t%s\t\t%s\n", filter.flight_code, filter.departure_airport, filter.destination_airport, filter.time_of_departure, filter.time_of_arrival);
-        }	
-	}
-    printf("\n\n\n");
-	if (found == 0)
-		printf("\nNo flight found\n\n");
-
-	fclose(filefilter);
-}
-
+void delay(int number_of_seconds) // Ýneternetten aldým. Biraz deðiþtirelim.
+{ 
+    // Converting time into milli_seconds 
+    int milli_seconds = 1000 * number_of_seconds; 
+  
+    // Storing start time 
+    clock_t start_time = clock(); 
+  
+    // looping till required time is not achieved 
+    while (clock() < start_time + milli_seconds) 
+        ; 
+} 
 
 
