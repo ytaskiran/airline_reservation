@@ -163,7 +163,7 @@ void adminPanel(){
             	listflight();
 			}
 			else if (admin_choice == 5){
-            	printf("Under Development");
+            	a_listbookings();
 			}
 			else if (admin_choice == 6){
             	changepass();
@@ -260,6 +260,23 @@ void listflight(){
 			printf("Number: %d\nAirline: %s\nFlight Code: %s\nDeparture Airport: %s\nDestination Airport: %s\nDeparture Time: %s\nArrival Time: %s\nPassenger Capacity: %s\n-------------------------------------\n",i,d2.airline,d2.flight_code,d2.departure_airport,d2.destination_airport,d2.time_of_departure,d2.time_of_arrival,d2.passenger_capacity);
 			i++;
 		}
+		int dummy;
+		do{
+			printf("Press 9 to continue main menu\n");
+			printf("Press 8 to continue admin panel\nChoice: ");
+			
+			scanf(" %d",&dummy);
+			
+			if (dummy == 9)
+				main();
+			
+			else if (dummy == 8)
+				adminPanel();
+			
+			else
+				printf("Invalid Option\nPlease Try Again\n");
+				
+		}while ((dummy != 9) && (dummy != 8 ));
 }
 
 void editflight(){
@@ -701,4 +718,17 @@ void displayFlightInfo(const char* flight_num)
 			printf("\nAirline: %s\nFlight Code: %s\nDeparture Airport: %s\nDestination Airport: %s\nDeparture Time: %s\nArrival Time: %s\nPassenger Capacity: %s\n-------------------------------------\n",info.airline,info.flight_code,info.departure_airport,info.destination_airport,info.time_of_departure,info.time_of_arrival,info.passenger_capacity);
         }	
 	}
+}
+
+void a_listbookings(){
+	FILE *listbookings;
+	listbookings = fopen("booking","r");
+	struct Ticket listticket;
+	printf("Bookings");
+	printf("| Booking ID  | Flight Number | Passenger Name | Passenger ID | Seat Number |");
+	printf("---------------");
+	while (fread(&listticket,sizeof(struct Ticket),1,listbookings)){
+		printf("| %s | %s | %s | %s | %d |");
+	}
+	fclose(listbookings);
 }
