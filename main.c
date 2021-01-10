@@ -10,15 +10,15 @@
 #include <unistd.h>
 #endif
 
-int mainMenu();
-void adminPanel();
-void passwordCheck();
-void addflight();
-void deleteflight();
-void editflight();
-void listflight();
-void changepass();
-void passengerMenu();
+int mainMenu(); // Main welcome -> -Admin menu -Passenger Menu -Quit
+void adminPanel(); // Admin Menu ->  -Add/Edit/Delete flights -List available flights -List current bookings -Change admin password 
+void passwordCheck(); // Password control
+void addflight(); // Add flight 
+void deleteflight(); // Delete an existing flight 
+void editflight(); // Edit an existing flight feature 
+void listflight(); // Listing flights
+void changepass(); // Change admin password
+void passengerMenu(); // Passenger Menu -> -Book a flight -Cancel a booking -List booked flights
 void bookFlight();
 void filterFlights(char departure[50], char destination[50]);
 int checkSeats(char flightnum[6]);
