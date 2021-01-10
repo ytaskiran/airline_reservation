@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <time.h> 
 
+
 int mainMenu();
 void adminPanel();
 void passwordCheck();
@@ -14,6 +15,7 @@ void listflight();
 void passengerMenu();
 void bookFlight();
 void delay(); 
+
 struct Flight{ 
 char airline[50];
 char flight_code[50];
@@ -23,6 +25,17 @@ char time_of_departure[50];
 char time_of_arrival[50];
 char passenger_capacity[50];
 };
+
+#if defined(_WIN32)
+	void clear(){
+		system("cls");
+	}
+#elif defined(__linux__)
+	void clear(){
+		system("clear");
+	}
+#endif
+
 
 int main() {
     int choice;
@@ -51,8 +64,7 @@ int main() {
 int mainMenu() 
 {   
     int choice;
-    system("cls");
-
+    clear();
     printf( "\n\n**********************************************************************************\n");
     printf( "**********************************************************************************\n");
     printf( "**********\t\t\t\t\t\t\t\t**********\n");
@@ -240,7 +252,7 @@ void editflight(){
 	listflight();
 	printf("Enter Flight Code to select an flight:\n");
 	scanf("%s",&edflightchoice);
-	system("cls");
+	clear();
 	printf("Flight Code: %s selected\n",edflightchoice);
 	printf("0- Return to Admin Menu\n");
 	printf("-----------------------\n");
@@ -359,7 +371,7 @@ void passengerMenu()
 {	
 	int passenger_choice, inp;
 
-	system("cls");
+	clear();
 
 	printf("\n\tPassenger Menu\n\n");
 	printf("1- Book a flight\n");
@@ -391,7 +403,7 @@ void bookFlight()
 {	
 	char departure[50], destination[50];
 
-	system("cls");
+	clear();
 
 	printf("\n Please provide departure and destination airport information\n\n");
 	printf("Departure: ");
