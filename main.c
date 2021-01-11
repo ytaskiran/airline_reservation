@@ -826,5 +826,5 @@ void listBookings(){
 	fclose(listbookings);
 	printf("\n\nPress any key to return Admin Panel -> ");
 	scanf(" %c", &choice);
-	passengerMenu();
+	adminPanel();
 }
